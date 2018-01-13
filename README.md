@@ -40,7 +40,7 @@ instance navigationDSLHalogenM :: NavigationDSL m => NavigationDSL (HalogenM s f
 ```
 
 What this basically says is that whenever you use `navigate` within a HalogenM context, we will
-the DSL to the inner-monad `m`, which means we'll need to have an instance ourselves.
+lift the DSL to the inner-monad `m`, which means we'll need to have an instance ourselves.
 
 ## Our application's Functor
 Before we get our monad, we'll start by defining a Functor. This functor needs to encode whatever
@@ -121,7 +121,7 @@ hoist
 ```
 
 What this does, basically, is given a component that runs under monad `m` and a way to go
-from `m` to `m'` (through the natural transform `m ~> m'`), then we can construct toe
+from `m` to `m'` (through the natural transform `m ~> m'`), then we can construct the
 component that runs under monad `m'`.
 
 It's also worth noting that `runUI` assumes a component that runs under the `Aff` monad,
