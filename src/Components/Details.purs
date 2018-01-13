@@ -4,18 +4,22 @@ module Example.Component.Details
   ) where
 
 import Control.Monad.Reader (ask)
-import Data.Maybe (Maybe(..))
+import Data.Int (fromString)
+import Data.Maybe (Maybe(..), maybe)
 import Data.NaturalTransformation (type (~>))
 import Example.Component.Router.Query (Route(..))
 import Example.Control.Monad (Example)
 import Example.DSL.Navigation (navigate)
+import Example.DSL.State (modifyState)
 import Halogen as H
 import Halogen.HTML as HH
 import Halogen.HTML.Events as HE
-import Prelude (Unit, Void, bind, const, discard, pure, show, ($), (<>))
+import Halogen.HTML.Properties as HP
+import Prelude (Unit, Void, bind, const, discard, id, pure, show, ($), (<>))
 
 data Query a 
   = Initialize a
+  | UpdateValue String a
   | GotoHome a
 
 type State = Int
@@ -36,6 +40,13 @@ component =
   render n =
     HH.div_
       [ HH.h1_ [ HH.text $ "The answer is " <> show n]
+      , HH.div_
+        [ HH.text "Change secret number: "
+        , HH.input 
+          [ HP.type_ HP.InputNumber
+          , HE.onValueInput (HE.input UpdateValue) 
+          ]
+        ]
       , HH.button
           [ HE.onClick (HE.input_ GotoHome) ]
           [ HH.text "Go to home" ]
@@ -45,6 +56,10 @@ component =
   eval (Initialize next) = do
     answer <- ask
     H.put answer
+    pure next
+  eval (UpdateValue val next) = do
+    let num = fromString val
+    modifyState \n -> maybe n id num
     pure next
   eval (GotoHome next) = do
     navigate Home

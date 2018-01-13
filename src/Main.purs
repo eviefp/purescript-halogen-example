@@ -3,6 +3,7 @@ module Main where
 import Control.Monad.Aff (Aff, launchAff)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Class (liftEff)
+import Control.Monad.Eff.Ref (newRef)
 import Example.Component.Router as R
 import Example.Component.Router.Query (Query(..))
 import Example.Control.Monad (EffectType, PushType, runExample)
@@ -15,8 +16,11 @@ import Prelude (Unit, Void, bind, pure, unit, ($), (<<<))
 main :: Eff (HA.HalogenEffects EffectType) Unit
 main = HA.runHalogenAff do
   body  <- HA.awaitBody
+
+  state <- liftEff <<< newRef $ 0
   event <- liftEff create
-  let router' = H.hoist (runExample 42 event.push) R.component
+
+  let router' = H.hoist (runExample 42 state event.push) R.component
   driver <- runUI router' unit body
   liftEff $ subscribe event.event (handler driver)
 
