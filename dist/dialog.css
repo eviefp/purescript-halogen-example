@@ -1,0 +1,94 @@
+body {
+  font-family: sans-serif;
+  max-width: 800px;
+  margin: auto;
+}
+
+.ps-modal {
+    /* This way it could be display flex or grid or whatever also. */
+    display: block;
+    
+    /* Probably need media queries here */
+    width: 600px;
+    max-width: 100%;
+    
+    height: 400px;
+    max-height: 100%;
+    
+    position: fixed;
+    
+    z-index: 100;
+    
+    left: 50%;
+    top: 50%;
+    
+    transform: translate(-50%, -50%);
+    
+    /* If known, negative margins are probably better (less chance of blurry text). */
+    /* margin: -200px 0 0 -200px; */
+    
+    background: white;
+    box-shadow: 0 0 60px 10px rgba(0, 0, 0, 0.9);
+  }
+
+  .guts {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    padding: 20px 50px 20px 20px;
+  }
+
+  .guts ul {
+    position: absolute;
+    bottom: 50px;
+    margin: 0 auto;
+    width: 400px;
+    left: 100px;
+    padding: 0 0;
+  }
+
+  .guts ul li {
+    list-style: none;
+  }
+  
+  .ps-closed {
+    display: none;
+  }
+  
+  .ps-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 50;
+    
+    background: rgba(0, 0, 0, 0.6);
+  }
+
+  .ps-btn {
+    text-decoration: none;
+    color: #fff;
+    background-color: #7bd317;
+    text-align: center;
+    letter-spacing: 1px;
+    cursor: pointer;
+    user-select: none;
+    
+    border: none;
+    border-radius: 10px;
+    display: block;
+    height: 44px;
+    line-height: 44px;
+    font-size: 22px;
+    outline: 0;
+    padding: 0 2rem;
+    text-transform: uppercase;
+
+    margin-top: 30px;
+    margin-bottom: 10px;
+    width: 100%;
+}

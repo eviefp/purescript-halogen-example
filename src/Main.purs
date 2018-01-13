@@ -6,13 +6,14 @@ import Control.Monad.Eff.Class (liftEff)
 import Control.Monad.Eff.Ref (newRef)
 import Example.Component.Router as R
 import Example.Component.Router.Query (Query(..))
-import Example.Control.Monad (EffectType, PushType, runExample)
+import Example.Control.Monad (PushType(..), runExample)
+import Example.EffectType (EffectType)
 import Example.Server.ServerAPI (APIToken(..), secretKey)
 import FRP.Event (create, subscribe)
 import Halogen as H
 import Halogen.Aff as HA
 import Halogen.VDom.Driver (runUI)
-import Prelude (Unit, Void, bind, pure, unit, ($), (<<<))
+import Prelude (Unit, Void, bind, discard, pure, unit, ($), (<<<))
 
 main :: Eff (HA.HalogenEffects EffectType) Unit
 main = HA.runHalogenAff do
@@ -31,6 +32,12 @@ main = HA.runHalogenAff do
   handler :: H.HalogenIO Query Void (Aff (HA.HalogenEffects EffectType))
           -> PushType
           -> Eff (HA.HalogenEffects EffectType) Unit
-  handler driver route = do
-    _ <- launchAff $ driver.query <<< H.action <<< Goto $ route
+  handler driver pt = do
+    case pt of
+      PushRoute route -> do
+        _ <- launchAff $ driver.query <<< H.action <<< Goto $ route
+        pure unit
+      PushShowDialog opts -> do
+        _ <- launchAff $ driver.query <<< H.action <<< ShowDialog $ opts         
+        pure unit
     pure unit

@@ -9,25 +9,30 @@ import Data.Maybe (Maybe(..), maybe)
 import Data.NaturalTransformation (type (~>))
 import Example.Component.Router.Query (Route(..))
 import Example.Control.Monad (Example)
+import Example.DSL.Dialog (showDialog)
 import Example.DSL.Navigation (navigate)
-import Example.DSL.State (modifyState)
+import Example.DSL.State (getState, setState)
 import Halogen as H
 import Halogen.HTML as HH
 import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties as HP
-import Prelude (Unit, Void, bind, const, discard, id, pure, show, ($), (<>))
+import Prelude (Unit, Void, bind, const, discard, id, pure, show, unit, ($), (<>))
 
 data Query a 
   = Initialize a
-  | UpdateValue String a
+  | ValueChanged String a
+  | UpdateValue a
   | GotoHome a
 
-type State = Int
+type State = 
+  { answer :: Int
+  , secret :: Int
+  }
 
 component :: H.Component HH.HTML Query Unit Void Example
 component =
   H.lifecycleComponent
-    { initialState: const 1
+    { initialState: const { answer: 0, secret: 0 }
     , render
     , eval
     , initializer: Just (H.action Initialize)
@@ -37,16 +42,20 @@ component =
   where
 
   render :: State -> H.ComponentHTML Query
-  render n =
+  render st =
     HH.div_
-      [ HH.h1_ [ HH.text $ "The answer is " <> show n]
+      [ HH.h1_ [ HH.text $ "The answer is " <> show st.answer ]
       , HH.div_
         [ HH.text "Change secret number: "
         , HH.input 
           [ HP.type_ HP.InputNumber
-          , HE.onValueInput (HE.input UpdateValue) 
+          , HP.value $ show st.secret
+          , HE.onValueInput (HE.input ValueChanged) 
           ]
         ]
+      , HH.button
+          [ HE.onClick (HE.input_ UpdateValue) ]
+          [ HH.text "Update" ]
       , HH.button
           [ HE.onClick (HE.input_ GotoHome) ]
           [ HH.text "Go to home" ]
@@ -55,12 +64,34 @@ component =
   eval :: Query ~> H.ComponentDSL State Query Void Example
   eval (Initialize next) = do
     answer <- ask
-    H.put answer
+    st <- getState
+    H.put { answer: answer, secret: st }
     pure next
-  eval (UpdateValue val next) = do
+  eval (ValueChanged val next) = do
     let num = fromString val
-    modifyState \n -> maybe n id num
+    H.modify \st -> st { secret = maybe st.secret id num }
     pure next
+  eval (UpdateValue next) = do
+    localState <- H.get
+    showDialog
+      { title: "Confirmation"
+      , message: "Are you sure you want to update the value?"
+      , actions:
+        [ { name: "Yes"
+          , action: updateValue localState.secret
+          }
+        , { name: "Nevermind"
+          , action: pure unit
+          }
+        ]
+      }
+    pure next
+
+    where
+    
+    updateValue :: Int -> Example Unit
+    updateValue = setState
+    
   eval (GotoHome next) = do
     navigate Home
     pure next
