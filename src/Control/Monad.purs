@@ -19,7 +19,9 @@ import Control.Monad.Free (Free, foldFree, liftF)
 import Control.Monad.Reader (class MonadAsk)
 import Example.Component.Router.Query (Route)
 import Example.DSL.Navigation (class NavigationDSL)
+import Example.DSL.Server (class ServerDSL)
 import Example.DSL.State (class StateDSL)
+import Example.Server.ServerAPI (APIToken, getGreeting)
 import FRP (FRP)
 import Halogen.Aff (HalogenEffects)
 import Prelude (class Applicative, class Apply, class Bind, class Functor, class Monad, type (~>), Unit, discard, flip, id, pure, unit, ($), (<$>), (<<<))
@@ -43,6 +45,7 @@ data ExampleF (eff :: # Effect) env st a
   = Ask (env -> a)
   | Navigate Route a
   | State (StateAction st a)
+  | ServerAPI (APIToken -> Aff eff a)
 
 newtype ExampleM eff env st a = ExampleM (Free (ExampleF eff env st) a)
 
@@ -65,26 +68,30 @@ instance stateDSLExampleM :: StateDSL st (ExampleM eff env st) where
   getState    = ExampleM <<< liftF <<< State <<< GetState $ id
   modifyState = ExampleM <<< liftF <<< State <<< flip ModifyState id
 
+instance serverDSLExampleM :: ServerDSL (ExampleM eff env st) where
+  getGreeting = ExampleM <<< liftF <<< ServerAPI $ getGreeting
 
 type PushType = Route
 
 type PushHandler = PushType -> Eff (HalogenEffects EffectType) Unit
 
-runExample :: Environment -> Ref State -> PushHandler -> Example ~> Aff (HalogenEffects EffectType)
-runExample env state push = foldFree go <<< unExampleM
+runExample :: Environment -> Ref State -> PushHandler -> APIToken -> Example ~> Aff (HalogenEffects EffectType)
+runExample env state push token = foldFree go <<< unExampleM
 
    where
 
    go :: ExampleF (HalogenEffects EffectType) Environment State ~> Aff (HalogenEffects EffectType)
    go = case _ of
-     Navigate route a -> do
-       liftEff <<< push $ route
-       pure a
-     Ask k ->
-       pure (k env)
-     State action ->
-       case action of
-         GetState f -> do
-           liftEff $ f <$> readRef state
-         ModifyState fs f -> do
-           liftEff $ f <$> modifyRef state fs
+    Navigate route a -> do
+      liftEff <<< push $ route
+      pure a
+    Ask k ->
+      pure (k env)
+    State action ->
+      case action of
+        GetState f -> do
+          liftEff $ f <$> readRef state
+        ModifyState fs f -> do
+          liftEff $ f <$> modifyRef state fs
+    ServerAPI action -> do
+      action token

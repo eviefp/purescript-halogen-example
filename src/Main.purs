@@ -7,6 +7,7 @@ import Control.Monad.Eff.Ref (newRef)
 import Example.Component.Router as R
 import Example.Component.Router.Query (Query(..))
 import Example.Control.Monad (EffectType, PushType, runExample)
+import Example.Server.ServerAPI (APIToken(..), secretKey)
 import FRP.Event (create, subscribe)
 import Halogen as H
 import Halogen.Aff as HA
@@ -19,8 +20,9 @@ main = HA.runHalogenAff do
 
   state <- liftEff <<< newRef $ 0
   event <- liftEff create
+  let token = APIToken secretKey
 
-  let router' = H.hoist (runExample 42 state event.push) R.component
+  let router' = H.hoist (runExample 42 state event.push token) R.component
   driver <- runUI router' unit body
   liftEff $ subscribe event.event (handler driver)
 

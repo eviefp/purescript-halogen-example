@@ -1170,12 +1170,16 @@ var PS = {};
           throw new Error("Failed pattern match at Data.Either line 79, column 1 - line 79, column 41: " + [ v.constructor.name, v1.constructor.name ]);
       };
   });
+  var applicativeEither = new Control_Applicative.Applicative(function () {
+      return applyEither;
+  }, Right.create);
   exports["Left"] = Left;
   exports["Right"] = Right;
   exports["either"] = either;
   exports["functorEither"] = functorEither;
   exports["bifunctorEither"] = bifunctorEither;
   exports["applyEither"] = applyEither;
+  exports["applicativeEither"] = applicativeEither;
   exports["eqEither"] = eqEither;
   exports["ordEither"] = ordEither;
 })(PS["Data.Either"] = PS["Data.Either"] || {});
@@ -7427,6 +7431,31 @@ var PS = {};
     "use strict";
   var Control_Monad_Free = PS["Control.Monad.Free"];
   var Control_Semigroupoid = PS["Control.Semigroupoid"];
+  var Data_Either = PS["Data.Either"];
+  var Data_Function = PS["Data.Function"];
+  var Halogen = PS["Halogen"];
+  var Halogen_Query_HalogenM = PS["Halogen.Query.HalogenM"];
+  var Prelude = PS["Prelude"];        
+  var ServerDSL = function (Monad0, getGreeting) {
+      this.Monad0 = Monad0;
+      this.getGreeting = getGreeting;
+  };
+  var getGreeting = function (dict) {
+      return dict.getGreeting;
+  };
+  var serverDSLHalogenM = function (dictServerDSL) {
+      return new ServerDSL(function () {
+          return Halogen_Query_HalogenM.monadHalogenM;
+      }, Halogen_Query_HalogenM.HalogenM(Control_Monad_Free.liftF(Halogen_Query_HalogenM.Lift.create(getGreeting(dictServerDSL)))));
+  };
+  exports["ServerDSL"] = ServerDSL;
+  exports["getGreeting"] = getGreeting;
+  exports["serverDSLHalogenM"] = serverDSLHalogenM;
+})(PS["Example.DSL.Server"] = PS["Example.DSL.Server"] || {});
+(function(exports) {
+    "use strict";
+  var Control_Monad_Free = PS["Control.Monad.Free"];
+  var Control_Semigroupoid = PS["Control.Semigroupoid"];
   var Data_Function = PS["Data.Function"];
   var Halogen = PS["Halogen"];
   var Halogen_Query_HalogenM = PS["Halogen.Query.HalogenM"];
@@ -7457,6 +7486,39 @@ var PS = {};
 (function(exports) {
     "use strict";
   var Control_Applicative = PS["Control.Applicative"];
+  var Control_Monad_Aff = PS["Control.Monad.Aff"];
+  var Control_Semigroupoid = PS["Control.Semigroupoid"];
+  var Data_Boolean = PS["Data.Boolean"];
+  var Data_Either = PS["Data.Either"];
+  var Data_Eq = PS["Data.Eq"];
+  var Data_Function = PS["Data.Function"];
+  var Prelude = PS["Prelude"];        
+  var APIToken = (function () {
+      function APIToken(value0) {
+          this.value0 = value0;
+      };
+      APIToken.create = function (value0) {
+          return new APIToken(value0);
+      };
+      return APIToken;
+  })();
+  var secretKey = "Secret-ey secret";
+  var getGreeting = function (v) {
+      if (v.value0 === secretKey) {
+          return Control_Applicative.pure(Control_Monad_Aff.applicativeAff)(Control_Applicative.pure(Data_Either.applicativeEither)("hello world"));
+      };
+      if (Data_Boolean.otherwise) {
+          return Control_Applicative.pure(Control_Monad_Aff.applicativeAff)(Data_Either.Left.create("error"));
+      };
+      throw new Error("Failed pattern match at Example.Server.ServerAPI line 16, column 1 - line 16, column 70: " + [ v.constructor.name ]);
+  };
+  exports["APIToken"] = APIToken;
+  exports["getGreeting"] = getGreeting;
+  exports["secretKey"] = secretKey;
+})(PS["Example.Server.ServerAPI"] = PS["Example.Server.ServerAPI"] || {});
+(function(exports) {
+    "use strict";
+  var Control_Applicative = PS["Control.Applicative"];
   var Control_Apply = PS["Control.Apply"];
   var Control_Bind = PS["Control.Bind"];
   var Control_Category = PS["Control.Category"];
@@ -7475,7 +7537,9 @@ var PS = {};
   var Data_Unit = PS["Data.Unit"];
   var Example_Component_Router_Query = PS["Example.Component.Router.Query"];
   var Example_DSL_Navigation = PS["Example.DSL.Navigation"];
+  var Example_DSL_Server = PS["Example.DSL.Server"];
   var Example_DSL_State = PS["Example.DSL.State"];
+  var Example_Server_ServerAPI = PS["Example.Server.ServerAPI"];
   var FRP = PS["FRP"];
   var Halogen_Aff = PS["Halogen.Aff"];
   var Prelude = PS["Prelude"];        
@@ -7530,6 +7594,15 @@ var PS = {};
       };
       return State;
   })();
+  var ServerAPI = (function () {
+      function ServerAPI(value0) {
+          this.value0 = value0;
+      };
+      ServerAPI.create = function (value0) {
+          return new ServerAPI(value0);
+      };
+      return ServerAPI;
+  })();
   var ExampleM = function (x) {
       return x;
   };
@@ -7539,28 +7612,33 @@ var PS = {};
   var runExample = function (env) {
       return function (state) {
           return function (push) {
-              var go = function (v) {
-                  if (v instanceof Navigate) {
-                      return Control_Bind.discard(Control_Bind.discardUnit)(Control_Monad_Aff.bindAff)(Control_Monad_Eff_Class.liftEff(Control_Monad_Aff.monadEffAff)(push(v.value0)))(function () {
-                          return Control_Applicative.pure(Control_Monad_Aff.applicativeAff)(v.value1);
-                      });
-                  };
-                  if (v instanceof Ask) {
-                      return Control_Applicative.pure(Control_Monad_Aff.applicativeAff)(v.value0(env));
-                  };
-                  if (v instanceof State) {
-                      if (v.value0 instanceof GetState) {
-                          return Control_Monad_Eff_Class.liftEff(Control_Monad_Aff.monadEffAff)(Data_Functor.map(Control_Monad_Eff.functorEff)(v.value0.value0)(Control_Monad_Eff_Ref.readRef(state)));
+              return function (token) {
+                  var go = function (v) {
+                      if (v instanceof Navigate) {
+                          return Control_Bind.discard(Control_Bind.discardUnit)(Control_Monad_Aff.bindAff)(Control_Monad_Eff_Class.liftEff(Control_Monad_Aff.monadEffAff)(push(v.value0)))(function () {
+                              return Control_Applicative.pure(Control_Monad_Aff.applicativeAff)(v.value1);
+                          });
                       };
-                      if (v.value0 instanceof ModifyState) {
-                          return Control_Monad_Eff_Class.liftEff(Control_Monad_Aff.monadEffAff)(Data_Functor.map(Control_Monad_Eff.functorEff)(v.value0.value1)(Control_Monad_Eff_Ref.modifyRef(state)(v.value0.value0)));
+                      if (v instanceof Ask) {
+                          return Control_Applicative.pure(Control_Monad_Aff.applicativeAff)(v.value0(env));
                       };
-                      throw new Error("Failed pattern match at Example.Control.Monad line 86, column 8 - line 90, column 44: " + [ v.value0.constructor.name ]);
+                      if (v instanceof State) {
+                          if (v.value0 instanceof GetState) {
+                              return Control_Monad_Eff_Class.liftEff(Control_Monad_Aff.monadEffAff)(Data_Functor.map(Control_Monad_Eff.functorEff)(v.value0.value0)(Control_Monad_Eff_Ref.readRef(state)));
+                          };
+                          if (v.value0 instanceof ModifyState) {
+                              return Control_Monad_Eff_Class.liftEff(Control_Monad_Aff.monadEffAff)(Data_Functor.map(Control_Monad_Eff.functorEff)(v.value0.value1)(Control_Monad_Eff_Ref.modifyRef(state)(v.value0.value0)));
+                          };
+                          throw new Error("Failed pattern match at Example.Control.Monad line 91, column 7 - line 95, column 45: " + [ v.value0.constructor.name ]);
+                      };
+                      if (v instanceof ServerAPI) {
+                          return v.value0(token);
+                      };
+                      throw new Error("Failed pattern match at Example.Control.Monad line 84, column 9 - line 97, column 14: " + [ v.constructor.name ]);
                   };
-                  throw new Error("Failed pattern match at Example.Control.Monad line 79, column 9 - line 90, column 44: " + [ v.constructor.name ]);
-              };
-              return function ($12) {
-                  return Control_Monad_Free.foldFree(Control_Monad_Aff.monadRecAff)(go)(unExampleM($12));
+                  return function ($13) {
+                      return Control_Monad_Free.foldFree(Control_Monad_Aff.monadRecAff)(go)(unExampleM($13));
+                  };
               };
           };
       };
@@ -7568,13 +7646,16 @@ var PS = {};
   var monadExampleM = Control_Monad_Free.freeMonad;
   var navigationDSLAlerterM = new Example_DSL_Navigation.NavigationDSL(function () {
       return monadExampleM;
-  }, function ($13) {
-      return ExampleM(Control_Monad_Free.liftF(Data_Function.flip(Navigate.create)(Data_Unit.unit)($13)));
+  }, function ($14) {
+      return ExampleM(Control_Monad_Free.liftF(Data_Function.flip(Navigate.create)(Data_Unit.unit)($14)));
   });
+  var serverDSLExampleM = new Example_DSL_Server.ServerDSL(function () {
+      return monadExampleM;
+  }, ExampleM(Control_Monad_Free.liftF(ServerAPI.create(Example_Server_ServerAPI.getGreeting))));
   var stateDSLExampleM = new Example_DSL_State.StateDSL(function () {
       return monadExampleM;
-  }, ExampleM(Control_Monad_Free.liftF(State.create(GetState.create(Control_Category.id(Control_Category.categoryFn))))), function ($14) {
-      return ExampleM(Control_Monad_Free.liftF(State.create(Data_Function.flip(ModifyState.create)(Control_Category.id(Control_Category.categoryFn))($14))));
+  }, ExampleM(Control_Monad_Free.liftF(State.create(GetState.create(Control_Category.id(Control_Category.categoryFn))))), function ($15) {
+      return ExampleM(Control_Monad_Free.liftF(State.create(Data_Function.flip(ModifyState.create)(Control_Category.id(Control_Category.categoryFn))($15))));
   });
   var monadAskAlerterM = new Control_Monad_Reader_Class.MonadAsk(function () {
       return monadExampleM;
@@ -7582,12 +7663,14 @@ var PS = {};
   exports["Ask"] = Ask;
   exports["Navigate"] = Navigate;
   exports["State"] = State;
+  exports["ServerAPI"] = ServerAPI;
   exports["ExampleM"] = ExampleM;
   exports["runExample"] = runExample;
   exports["monadExampleM"] = monadExampleM;
   exports["monadAskAlerterM"] = monadAskAlerterM;
   exports["navigationDSLAlerterM"] = navigationDSLAlerterM;
   exports["stateDSLExampleM"] = stateDSLExampleM;
+  exports["serverDSLExampleM"] = serverDSLExampleM;
 })(PS["Example.Control.Monad"] = PS["Example.Control.Monad"] || {});
 (function(exports) {
   // Generated by purs version 0.11.6
@@ -8864,7 +8947,8 @@ var PS = {};
   exports["onValueInput"] = onValueInput;
 })(PS["Halogen.HTML.Events"] = PS["Halogen.HTML.Events"] || {});
 (function(exports) {
-    "use strict";
+  // Generated by purs version 0.11.6
+  "use strict";
   var Control_Applicative = PS["Control.Applicative"];
   var Control_Bind = PS["Control.Bind"];
   var Control_Category = PS["Control.Category"];
@@ -8967,7 +9051,9 @@ var PS = {};
     "use strict";
   var Control_Applicative = PS["Control.Applicative"];
   var Control_Bind = PS["Control.Bind"];
+  var Control_Category = PS["Control.Category"];
   var Control_Monad_State_Class = PS["Control.Monad.State.Class"];
+  var Data_Either = PS["Data.Either"];
   var Data_Function = PS["Data.Function"];
   var Data_Maybe = PS["Data.Maybe"];
   var Data_NaturalTransformation = PS["Data.NaturalTransformation"];
@@ -8976,6 +9062,7 @@ var PS = {};
   var Example_Component_Router_Query = PS["Example.Component.Router.Query"];
   var Example_Control_Monad = PS["Example.Control.Monad"];
   var Example_DSL_Navigation = PS["Example.DSL.Navigation"];
+  var Example_DSL_Server = PS["Example.DSL.Server"];
   var Example_DSL_State = PS["Example.DSL.State"];
   var Halogen = PS["Halogen"];
   var Halogen_Component = PS["Halogen.Component"];
@@ -9005,13 +9092,21 @@ var PS = {};
       return GotoDetails;
   })();
   var component = (function () {
-      var render = function (n) {
-          return Halogen_HTML_Elements.div_([ Halogen_HTML_Elements.h1_([ Halogen_HTML_Core.text("This is home") ]), Halogen_HTML_Elements.div_([ Halogen_HTML_Core.text("Secret number is: " + Data_Show.show(Data_Show.showInt)(n)) ]), Halogen_HTML_Elements.button([ Halogen_HTML_Events.onClick(Halogen_HTML_Events.input_(GotoDetails.create)) ])([ Halogen_HTML_Core.text("Go to details") ]) ]);
+      var render = function (st) {
+          return Halogen_HTML_Elements.div_([ Halogen_HTML_Elements.h1_([ Halogen_HTML_Core.text(st.greeting) ]), Halogen_HTML_Elements.div_([ Halogen_HTML_Core.text("Secret number is: " + Data_Show.show(Data_Show.showInt)(st.secretNumber)) ]), Halogen_HTML_Elements.button([ Halogen_HTML_Events.onClick(Halogen_HTML_Events.input_(GotoDetails.create)) ])([ Halogen_HTML_Core.text("Go to details") ]) ]);
       };
       var $$eval = function (v) {
           if (v instanceof Initialize) {
-              return Control_Bind.discard(Control_Bind.discardUnit)(Halogen_Query_HalogenM.bindHalogenM)(Control_Bind.bind(Halogen_Query_HalogenM.bindHalogenM)(Example_DSL_State.getState(Example_DSL_State.stateDSLHalogenM(Example_Control_Monad.stateDSLExampleM)))(Control_Monad_State_Class.put(Halogen_Query_HalogenM.monadStateHalogenM)))(function () {
-                  return Control_Applicative.pure(Halogen_Query_HalogenM.applicativeHalogenM)(v.value0);
+              return Control_Bind.bind(Halogen_Query_HalogenM.bindHalogenM)(Example_DSL_State.getState(Example_DSL_State.stateDSLHalogenM(Example_Control_Monad.stateDSLExampleM)))(function (v1) {
+                  return Control_Bind.bind(Halogen_Query_HalogenM.bindHalogenM)(Example_DSL_Server.getGreeting(Example_DSL_Server.serverDSLHalogenM(Example_Control_Monad.serverDSLExampleM)))(function (v2) {
+                      var greeting = Data_Either.either(Data_Function["const"]("error"))(Control_Category.id(Control_Category.categoryFn))(v2);
+                      return Control_Bind.discard(Control_Bind.discardUnit)(Halogen_Query_HalogenM.bindHalogenM)(Control_Monad_State_Class.put(Halogen_Query_HalogenM.monadStateHalogenM)({
+                          secretNumber: v1, 
+                          greeting: greeting
+                      }))(function () {
+                          return Control_Applicative.pure(Halogen_Query_HalogenM.applicativeHalogenM)(v.value0);
+                      });
+                  });
               });
           };
           if (v instanceof GotoDetails) {
@@ -9019,10 +9114,13 @@ var PS = {};
                   return Control_Applicative.pure(Halogen_Query_HalogenM.applicativeHalogenM)(v.value0);
               });
           };
-          throw new Error("Failed pattern match at Example.Component.Home line 45, column 3 - line 45, column 59: " + [ v.constructor.name ]);
+          throw new Error("Failed pattern match at Example.Component.Home line 50, column 3 - line 50, column 59: " + [ v.constructor.name ]);
       };
       return Halogen_Component.lifecycleComponent(Halogen_HTML_Core.bifunctorHTML)({
-          initialState: Data_Function["const"](0), 
+          initialState: Data_Function["const"]({
+              secretNumber: 0, 
+              greeting: ""
+          }), 
           render: render, 
           "eval": $$eval, 
           initializer: new Data_Maybe.Just(Halogen_Query.action(Initialize.create)), 
@@ -10327,6 +10425,7 @@ var PS = {};
   var Example_Component_Router = PS["Example.Component.Router"];
   var Example_Component_Router_Query = PS["Example.Component.Router.Query"];
   var Example_Control_Monad = PS["Example.Control.Monad"];
+  var Example_Server_ServerAPI = PS["Example.Server.ServerAPI"];
   var FRP_Event = PS["FRP.Event"];
   var Halogen = PS["Halogen"];
   var Halogen_Aff = PS["Halogen.Aff"];
@@ -10348,7 +10447,8 @@ var PS = {};
       return Halogen_Aff_Util.runHalogenAff(Control_Bind.bind(Control_Monad_Aff.bindAff)(Halogen_Aff_Util.awaitBody)(function (v) {
           return Control_Bind.bind(Control_Monad_Aff.bindAff)(Control_Monad_Eff_Class.liftEff(Control_Monad_Aff.monadEffAff)(Control_Monad_Eff_Ref.newRef(0)))(function (v1) {
               return Control_Bind.bind(Control_Monad_Aff.bindAff)(Control_Monad_Eff_Class.liftEff(Control_Monad_Aff.monadEffAff)(FRP_Event.create))(function (v2) {
-                  var router$prime = Halogen_Component.hoist(Halogen_HTML_Core.bifunctorHTML)(Control_Monad_Aff.functorAff)(Example_Control_Monad.runExample(42)(v1)(v2.push))(Example_Component_Router.component);
+                  var token = new Example_Server_ServerAPI.APIToken(Example_Server_ServerAPI.secretKey);
+                  var router$prime = Halogen_Component.hoist(Halogen_HTML_Core.bifunctorHTML)(Control_Monad_Aff.functorAff)(Example_Control_Monad.runExample(42)(v1)(v2.push)(token))(Example_Component_Router.component);
                   return Control_Bind.bind(Control_Monad_Aff.bindAff)(Halogen_VDom_Driver.runUI(router$prime)(Data_Unit.unit)(v))(function (v3) {
                       return Control_Monad_Eff_Class.liftEff(Control_Monad_Aff.monadEffAff)(FRP_Event.subscribe(v2.event)(handler(v3)));
                   });
