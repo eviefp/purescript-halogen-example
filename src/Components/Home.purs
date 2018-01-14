@@ -20,6 +20,10 @@ data Query a
   = Initialize a
   | GotoDetails a
 
+-- | The secret number is stored in our global state. 
+-- | We can change it in the `Details` page.
+-- |
+-- | The greeting is obtained through our server "api".
 type State = 
  { secretNumber :: Int
  , greeting     :: String
@@ -47,6 +51,8 @@ component =
           [ HH.text "Go to details" ]
       ]
 
+  -- | We are able to use `getState`, `getGreeting` and `navigate` here
+  -- | from our app's DSLs / free monad.
   eval :: Query ~> H.ComponentDSL State Query Void Example
   eval (Initialize next) = do
     number <- getState

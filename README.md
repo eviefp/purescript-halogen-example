@@ -1,8 +1,3 @@
-## WIP -- remove once done.
-
-Work in progress. Still to do:
-- add some comments the source files, clean them up a bit as well
-
 # Purescript Halogen Example
 Sample Halogen app with a few DSLs implemented as the application's free monad.
 

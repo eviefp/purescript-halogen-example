@@ -24,6 +24,8 @@ data Query a
   | UpdateValue a
   | GotoHome a
 
+-- | `answer` is in our Environment / MonadAsk
+-- | `secret` is the global `StateDSL`
 type State = 
   { answer :: Int
   , secret :: Int

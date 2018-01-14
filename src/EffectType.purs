@@ -2,10 +2,7 @@ module Example.EffectType
   ( EffectType
   ) where
 
-import Control.Monad.Eff.Console (CONSOLE)
 import FRP (FRP)
 
-type EffectType = 
-  ( console :: CONSOLE
-  , frp     :: FRP
-  )
+-- | We only use the `purescript-behavior`'s `FRP` on top of the halogen effects
+type EffectType = (frp :: FRP)
