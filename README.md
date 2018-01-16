@@ -31,7 +31,7 @@ In order to be able to use these DSLs in `Halogen`, we need to lift these operat
 
 ```purescript
 instance navigationDSLHalogenM :: NavigationDSL m => NavigationDSL (HalogenM s f g p o m) where
-  navigate = HalogenM <<< liftF <<< Lift <<< navigate
+  navigate = lift <<< navigate
 ```
 
 What this basically says is that whenever you use `navigate` within a HalogenM context, we will
