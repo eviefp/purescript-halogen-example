@@ -6,8 +6,7 @@ module Example.DSL.Dialog
   ) where
 
 import Control.Monad.Eff (kind Effect)
-import Control.Monad.Free (liftF)
-import Halogen (HalogenF(..), HalogenM(..))
+import Halogen (HalogenM, lift)
 import Prelude (class Monad, Unit, (<<<))
 
 -- | A dialog can have multiple `ActionOption`s.
@@ -27,10 +26,10 @@ type DialogOptions m =
   }
 
 -- | Shows the dialog and return Unit under the current monad.
-class (Monad m, Monad n) <= DialogDSL n m where
+class Monad m <= DialogDSL n m where
   showDialog :: DialogOptions n -> m Unit
 
 -- | We need a HalogenM instance in order to be able to use this DSL
 -- | within our component's `eval`.
 instance dialogDSLHalogenM :: DialogDSL n m => DialogDSL n (HalogenM s f g p o m) where
-  showDialog = HalogenM <<< liftF <<< Lift <<< showDialog
+  showDialog = lift <<< showDialog

@@ -31,7 +31,7 @@ In order to be able to use these DSLs in `Halogen`, we need to lift these operat
 
 ```purescript
 instance navigationDSLHalogenM :: NavigationDSL m => NavigationDSL (HalogenM s f g p o m) where
-  navigate = HalogenM <<< liftF <<< Lift <<< navigate
+  navigate = lift <<< navigate
 ```
 
 What this basically says is that whenever you use `navigate` within a HalogenM context, we will
@@ -168,7 +168,31 @@ main = HA.runHalogenAff do
 ```
 
 ## Brief overview of the other DSLs
-There's a couple of other DSLs defined in this example.
+There's a couple of other DSLs defined in this example. However, before doing so, I would
+like to draw your attention to the `runExample` function:
+
+```purescript
+runExample :: Environment -> Ref State -> PushHandler -> APIToken -> Example ~> Aff (HalogenEffects EffectType)
+```
+
+- `Environment` is for `MonadAsk`
+- `Ref State` is for `StateDSL`
+- `PushHandler` is for `NavigationDSL` and `ShowDialog`
+- `APIToken` is for `ServerAPI`
+
+I'd like to emphasize the difference between them. `APIToken` is not accessible at all 
+outside of the `runExample` function (well, at least not within the monad). 
+
+`MonadAsk` is for *read-only* data shared across the monad. Anyone can read it (using `ask`), 
+but it can't be modified.
+
+`StateDSL` is our mutable state. We can read and *update* it from within our monad. It's worth
+mentioning that this state is the global application state, which is in no way related to the
+each Halogen component's internal state, which is represented using the more standard `MonadState`
+DSL.
+
+`PushHandler` is a bit different: it allows us to signal back to our caller whenever we
+need to navigate to a new route or to show a dialog.
 
 ### MonadAsk
 `MonadAsk` allows us to get the current environment. This is initialized in `main` and

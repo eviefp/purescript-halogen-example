@@ -3,10 +3,9 @@ module Example.DSL.Server
   , getGreeting
   ) where
 
-import Control.Monad.Free (liftF)
 import Data.Either (Either)
-import Halogen (HalogenF(..), HalogenM(..))
-import Prelude (class Monad, ($), (<<<))
+import Halogen (HalogenM, lift)
+import Prelude (class Monad)
 
 -- | Simple Server API DSL. If we have more server calls, we can just add to this
 -- | list here. As an alternative, please check `purescript-affjax-algebra`.
@@ -20,4 +19,4 @@ class Monad m <= ServerDSL m where
 -- | We need a HalogenM instance in order to be able to use this DSL
 -- | within our component's `eval`.
 instance serverDSLHalogenM :: ServerDSL m => ServerDSL (HalogenM s f g p o m) where
-  getGreeting = HalogenM <<< liftF <<< Lift $ getGreeting
+  getGreeting = lift getGreeting
