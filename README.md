@@ -5,6 +5,8 @@ The overview presented here has some simplified examples. You will find some of 
 presented here have less arguments / constructors / etc. than the actual types used in the
 source code.
 
+You can check out the result [here](https://vladciobanu.github.io/purescript-halogen-example/index.html).
+
 ## Purpose
 This repository aims to be an example of how to use a `Free` monad with `Halogen` in order
 to create a DSL that can be used inside the component's `eval`.
