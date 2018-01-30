@@ -1,7 +1,7 @@
 {
     "private": true,
     "scripts": {
-        "build": "pulp build --to dist/app.js",
-        "watch": "pulp --watch build --to dist/app.js"
+        "build": "pulp build --to docs/app.js",
+        "watch": "pulp --watch build --to docs/app.js"
     }
 }
