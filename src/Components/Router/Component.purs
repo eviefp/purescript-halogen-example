@@ -22,6 +22,7 @@ import Halogen.Component.ChildPath as CP
 import Halogen.HTML as HH
 import Halogen.HTML.Events as HE
 import Prelude (Unit, Void, absurd, bind, const, discard, map, pure, unit, ($), (<<<))
+import Run (liftAff)
 import Unsafe.Coerce (unsafeCoerce)
 
 
@@ -87,7 +88,7 @@ component
         case maybeAction of
           Nothing -> pure unit
           Just action -> do
-            _ ← H.lift <<< unsafeCoerce $ action.action
+            H.lift <<< liftAff $ action.action
             H.modify _{ dialogOptions = Nothing }
             pure unit
         pure unit
