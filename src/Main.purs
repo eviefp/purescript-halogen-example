@@ -1,5 +1,5 @@
 -- | Main entry point for the example app.
-module Main 
+module Main
   ( main
   ) where
 
@@ -9,7 +9,7 @@ import Control.Monad.Eff.Class (liftEff)
 import Control.Monad.Eff.Ref (newRef)
 import Example.Component.Router as R
 import Example.Component.Router.Query (Query(..))
-import Example.Control.Monad (PushType(..), runExample)
+import Example.Control.MonadRun
 import Example.EffectType (EffectType)
 import Example.Server.ServerAPI (APIToken(..), secretKey)
 import FRP.Event (create, subscribe)
@@ -26,7 +26,7 @@ import Prelude (Unit, Void, bind, discard, pure, unit, ($), (<<<))
 -- | `state`, our application's state, as a `Ref Int`
 -- | `event`, our `behavior` which allows us to push events back from our `run`
 -- | `token`, as our API's secret / authentication token
--- | 
+-- |
 -- | we then transform (hoist) the router component from our `Example` monad
 -- | to a regular `Aff`-based component that goes into `runUI`
 -- |
@@ -57,6 +57,6 @@ main = HA.runHalogenAff do
         _ <- launchAff $ driver.query <<< H.action <<< Goto $ route
         pure unit
       PushShowDialog opts -> do
-        _ <- launchAff $ driver.query <<< H.action <<< ShowDialog $ opts         
+        _ <- launchAff $ driver.query <<< H.action <<< ShowDialog $ opts
         pure unit
     pure unit

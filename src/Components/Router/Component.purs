@@ -1,4 +1,4 @@
-module Example.Component.Router 
+module Example.Component.Router
   ( component
   ) where
 
@@ -13,7 +13,7 @@ import Example.Component.Dialog (DialogOptionsLite)
 import Example.Component.Dialog as Dialog
 import Example.Component.Home as Home
 import Example.Component.Router.Query (Query(..), Route(..))
-import Example.Control.Monad (Example)
+import Example.Control.MonadRun (Example)
 import Example.DSL.Dialog (DialogOptions, ActionOptions)
 import Example.EffectType (EffectType)
 import Halogen as H
@@ -21,7 +21,8 @@ import Halogen.Aff (HalogenEffects)
 import Halogen.Component.ChildPath as CP
 import Halogen.HTML as HH
 import Halogen.HTML.Events as HE
-import Prelude (Unit, Void, absurd, bind, const, discard, map, pure, unit)
+import Prelude (Unit, Void, absurd, bind, const, discard, map, pure, unit, ($), (<<<))
+import Unsafe.Coerce (unsafeCoerce)
 
 
 -- | Query algebra for direct children of the router component, represented as
@@ -33,7 +34,7 @@ type ItemSlot = Either3 Unit Unit Unit
 
 type DialogOptions' = (DialogOptions (Aff (HalogenEffects EffectType)))
 
-type State = 
+type State =
   { route :: Route
   , dialogOptions :: Maybe DialogOptions'
   }
@@ -50,7 +51,7 @@ component
   where
 
   render :: State -> H.ParentHTML Query ItemQuery ItemSlot Example
-  render { route, dialogOptions } = 
+  render { route, dialogOptions } =
     HH.div_
       [ renderRoute route
       , renderDialog dialogOptions
@@ -62,7 +63,7 @@ component
     renderRoute = case _ of
       Home    -> HH.slot' CP.cp2 unit Home.component    unit absurd
       Details -> HH.slot' CP.cp3 unit Details.component unit absurd
-    
+
     renderDialog :: Maybe DialogOptions' -> H.ParentHTML Query ItemQuery ItemSlot Example
     renderDialog Nothing     = HH.text ""
     renderDialog (Just opts) = HH.slot' CP.cp1 unit Dialog.component (shred opts) (HE.input HandleDialogResult)
@@ -86,7 +87,7 @@ component
         case maybeAction of
           Nothing -> pure unit
           Just action -> do
-            H.liftAff action.action
+            _ ← H.lift <<< unsafeCoerce $ action.action
             H.modify _{ dialogOptions = Nothing }
             pure unit
         pure unit

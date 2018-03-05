@@ -3,22 +3,21 @@ module Example.Component.Details
   , Query (..)
   ) where
 
-import Control.Monad.Reader (ask)
 import Data.Int (fromString)
 import Data.Maybe (Maybe(..), maybe)
 import Data.NaturalTransformation (type (~>))
 import Example.Component.Router.Query (Route(..))
-import Example.Control.Monad (Example)
-import Example.DSL.Dialog (showDialog)
-import Example.DSL.Navigation (navigate)
-import Example.DSL.State (getState, setState)
+import Example.Control.MonadRun (Example, navigate, showDialog)
 import Halogen as H
 import Halogen.HTML as HH
 import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties as HP
 import Prelude (Unit, Void, bind, const, discard, id, pure, show, unit, ($), (<>))
+import Run.Reader (ask)
+import Run.State (get, put)
 
-data Query a 
+
+data Query a
   = Initialize a
   | ValueChanged String a
   | UpdateValue a
@@ -26,7 +25,7 @@ data Query a
 
 -- | `answer` is in our Environment / MonadAsk
 -- | `secret` is the global `StateDSL`
-type State = 
+type State =
   { answer :: Int
   , secret :: Int
   }
@@ -49,10 +48,10 @@ component =
       [ HH.h1_ [ HH.text $ "The answer is " <> show st.answer ]
       , HH.div_
         [ HH.text "Change secret number: "
-        , HH.input 
+        , HH.input
           [ HP.type_ HP.InputNumber
           , HP.value $ show st.secret
-          , HE.onValueInput (HE.input ValueChanged) 
+          , HE.onValueInput (HE.input ValueChanged)
           ]
         ]
       , HH.button
@@ -65,8 +64,8 @@ component =
 
   eval :: Query ~> H.ComponentDSL State Query Void Example
   eval (Initialize next) = do
-    answer <- ask
-    st <- getState
+    answer <- H.lift $ ask
+    st <- H.lift $ get
     H.put { answer: answer, secret: st }
     pure next
   eval (ValueChanged val next) = do
@@ -75,12 +74,12 @@ component =
     pure next
   eval (UpdateValue next) = do
     localState <- H.get
-    showDialog
+    H.lift $ showDialog
       { title: "Confirmation"
       , message: "Are you sure you want to update the value?"
       , actions:
         [ { name: "Yes"
-          , action: updateValue localState.secret
+          , action: put localState.secret
           }
         , { name: "Nevermind"
           , action: pure unit
@@ -89,11 +88,6 @@ component =
       }
     pure next
 
-    where
-    
-    updateValue :: Int -> Example Unit
-    updateValue = setState
-    
   eval (GotoHome next) = do
-    navigate Home
+    H.lift $ navigate Home
     pure next
