@@ -6,15 +6,16 @@ module Example.Component.Home
 import Data.Either (either)
 import Data.Maybe (Maybe(..))
 import Data.NaturalTransformation (type (~>))
+import Data.Newtype (unwrap)
 import Example.Component.Router.Query (Route(..))
-import Example.Control.Monad (Example)
+import Example.Control.Monad (ExampleM)
 import Example.DSL.Navigation (navigate)
 import Example.DSL.Server (getGreeting)
 import Example.DSL.State (getState)
 import Halogen as H
 import Halogen.HTML as HH
 import Halogen.HTML.Events as HE
-import Prelude (Unit, Void, bind, const, discard, identity, pure, show, ($))
+import Prelude (Unit, Void, bind, const, discard, identity, pure, show, ($), (<$>))
 
 data Query a
   = Initialize a
@@ -29,7 +30,7 @@ type State =
  , greeting     :: String
  }
 
-component :: H.Component HH.HTML Query Unit Void Example
+component :: H.Component HH.HTML Query Unit Void ExampleM
 component =
   H.lifecycleComponent
     { initialState: const { secretNumber: Nothing, greeting: "" }
@@ -59,9 +60,9 @@ component =
 
   -- | We are able to use `getState`, `getGreeting` and `navigate` here
   -- | from our app's DSLs / free monad.
-  eval :: Query ~> H.ComponentDSL State Query Void Example
+  eval :: Query ~> H.ComponentDSL State Query Void ExampleM
   eval (Initialize next) = do
-    number <- getState
+    number <- unwrap <$> getState
     greetingResult <- getGreeting
     let greeting = either (const "error") identity greetingResult
     H.put { secretNumber: Just number, greeting: greeting }
