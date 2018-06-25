@@ -89,4 +89,3 @@ instance dialogDSLExampleM :: DialogDSL ExampleM ExampleM where
         runOptions d = d { actions = map runAction d.actions }
 
     liftEffect <<< env.push <<< PushShowDialog <<< runOptions $ opts
-
