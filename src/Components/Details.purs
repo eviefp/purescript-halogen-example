@@ -16,9 +16,9 @@ import Halogen as H
 import Halogen.HTML as HH
 import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties as HP
-import Prelude (Unit, Void, bind, const, discard, id, pure, show, unit, ($), (<>))
+import Prelude (Unit, Void, bind, const, discard, identity, pure, show, unit, ($), (<>))
 
-data Query a 
+data Query a
   = Initialize a
   | ValueChanged String a
   | UpdateValue a
@@ -26,7 +26,7 @@ data Query a
 
 -- | `answer` is in our Environment / MonadAsk
 -- | `secret` is the global `StateDSL`
-type State = 
+type State =
   { answer :: Int
   , secret :: Int
   }
@@ -49,10 +49,10 @@ component =
       [ HH.h1_ [ HH.text $ "The answer is " <> show st.answer ]
       , HH.div_
         [ HH.text "Change secret number: "
-        , HH.input 
+        , HH.input
           [ HP.type_ HP.InputNumber
           , HP.value $ show st.secret
-          , HE.onValueInput (HE.input ValueChanged) 
+          , HE.onValueInput (HE.input ValueChanged)
           ]
         ]
       , HH.button
@@ -71,7 +71,7 @@ component =
     pure next
   eval (ValueChanged val next) = do
     let num = fromString val
-    H.modify \st -> st { secret = maybe st.secret id num }
+    H.modify_ \st -> st { secret = maybe st.secret identity num }
     pure next
   eval (UpdateValue next) = do
     localState <- H.get
@@ -90,10 +90,10 @@ component =
     pure next
 
     where
-    
+
     updateValue :: Int -> Example Unit
     updateValue = setState
-    
+
   eval (GotoHome next) = do
     navigate Home
     pure next

@@ -12,9 +12,9 @@ import Halogen as H
 import Halogen.HTML as HH
 import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties as HP
-import Prelude (type (~>), const, discard, id, pure, ($), (<<<))
+import Prelude (type (~>), const, discard, identity, pure, ($), (<<<))
 
-type DialogOptionsLite = 
+type DialogOptionsLite =
   { title   :: String
   , message :: String
   , actions :: Array String
@@ -29,12 +29,12 @@ type State = DialogOptionsLite
 component :: forall m. H.Component HH.HTML Query DialogOptionsLite DialogResult m
 component
   = H.component
-    { initialState: id
+    { initialState: identity
     , render
     , eval
-    , receiver: const Nothing 
+    , receiver: const Nothing
     }
-  
+
   where
 
   render :: State -> H.ComponentHTML Query
@@ -57,8 +57,8 @@ component
       where
 
       renderAction :: Int -> String -> H.ComponentHTML Query
-      renderAction i a = 
-        HH.li_ 
+      renderAction i a =
+        HH.li_
           [ HH.button
             [ HE.onClick (HE.input_ (CloseDialog i))
             , HP.class_ (H.ClassName "ps-btn")

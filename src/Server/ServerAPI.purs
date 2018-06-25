@@ -4,7 +4,7 @@ module Example.Server.ServerAPI
   , APIToken (..)
   ) where
 
-import Control.Monad.Aff (Aff)
+import Effect.Aff (Aff)
 import Data.Either (Either(..))
 import Prelude (otherwise, pure, ($), (<<<), (==))
 
@@ -18,7 +18,7 @@ secretKey = "Secret-ey secret"
 
 -- | As most APIs, it requires some input, which we represent as an `APIToken`. We can test
 -- | this by replacing the token we send to `runExample` in `main`..
-getGreetingImpl :: forall eff. APIToken -> Aff eff (Either String String)
+getGreetingImpl :: APIToken -> Aff (Either String String)
 getGreetingImpl (APIToken token)
   | token == secretKey = pure <<< pure $ "hello world"
   | otherwise          = pure <<< Left $ "error"
