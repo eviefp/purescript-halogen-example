@@ -1,8 +1,8 @@
-module Example.Component.Router 
+module Example.Component.Router
   ( component
   ) where
 
-import Control.Monad.Aff (Aff)
+import Effect.Aff (Aff)
 import Data.Array ((!!))
 import Data.Either.Nested (Either3)
 import Data.Functor.Coproduct.Nested (Coproduct3)
@@ -15,9 +15,7 @@ import Example.Component.Home as Home
 import Example.Component.Router.Query (Query(..), Route(..))
 import Example.Control.Monad (Example)
 import Example.DSL.Dialog (DialogOptions, ActionOptions)
-import Example.EffectType (EffectType)
 import Halogen as H
-import Halogen.Aff (HalogenEffects)
 import Halogen.Component.ChildPath as CP
 import Halogen.HTML as HH
 import Halogen.HTML.Events as HE
@@ -31,11 +29,9 @@ type ItemQuery = Coproduct3 Dialog.Query Home.Query Details.Query
 -- | Slot type for router items.
 type ItemSlot = Either3 Unit Unit Unit
 
-type DialogOptions' = (DialogOptions (Aff (HalogenEffects EffectType)))
-
-type State = 
+type State =
   { route :: Route
-  , dialogOptions :: Maybe DialogOptions'
+  , dialogOptions :: Maybe (DialogOptions Aff)
   }
 
 -- | Router component.
@@ -50,7 +46,7 @@ component
   where
 
   render :: State -> H.ParentHTML Query ItemQuery ItemSlot Example
-  render { route, dialogOptions } = 
+  render { route, dialogOptions } =
     HH.div_
       [ renderRoute route
       , renderDialog dialogOptions
@@ -62,8 +58,8 @@ component
     renderRoute = case _ of
       Home    -> HH.slot' CP.cp2 unit Home.component    unit absurd
       Details -> HH.slot' CP.cp3 unit Details.component unit absurd
-    
-    renderDialog :: Maybe DialogOptions' -> H.ParentHTML Query ItemQuery ItemSlot Example
+
+    renderDialog :: Maybe (DialogOptions Aff) -> H.ParentHTML Query ItemQuery ItemSlot Example
     renderDialog Nothing     = HH.text ""
     renderDialog (Just opts) = HH.slot' CP.cp1 unit Dialog.component (shred opts) (HE.input HandleDialogResult)
 
@@ -75,7 +71,7 @@ component
 
   eval :: Query ~> H.ParentDSL State Query ItemQuery ItemSlot Void Example
   eval (ShowDialog opts next) = do
-    H.modify _{ dialogOptions = Just opts }
+    H.modify_ _ { dialogOptions = Just opts }
     pure next
   eval (HandleDialogResult (Dialog.DialogResult idx) next) = do
     st <- H.get
@@ -87,10 +83,10 @@ component
           Nothing -> pure unit
           Just action -> do
             H.liftAff action.action
-            H.modify _{ dialogOptions = Nothing }
+            H.modify_ _ { dialogOptions = Nothing }
             pure unit
         pure unit
     pure next
   eval (Goto route next) = do
-    H.modify _{ route = route }
+    H.modify_ _ { route = route }
     pure next

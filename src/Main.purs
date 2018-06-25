@@ -1,16 +1,15 @@
 -- | Main entry point for the example app.
-module Main 
+module Main
   ( main
   ) where
 
-import Control.Monad.Aff (Aff, launchAff)
-import Control.Monad.Eff (Eff)
-import Control.Monad.Eff.Class (liftEff)
-import Control.Monad.Eff.Ref (newRef)
+import Effect.Aff (Aff, launchAff)
+import Effect (Effect)
+import Effect.Class (liftEffect)
+import Effect.Ref as Ref
 import Example.Component.Router as R
 import Example.Component.Router.Query (Query(..))
 import Example.Control.Monad (PushType(..), runExample)
-import Example.EffectType (EffectType)
 import Example.Server.ServerAPI (APIToken(..), secretKey)
 import FRP.Event (create, subscribe)
 import Halogen as H
@@ -26,37 +25,37 @@ import Prelude (Unit, Void, bind, discard, pure, unit, ($), (<<<))
 -- | `state`, our application's state, as a `Ref Int`
 -- | `event`, our `behavior` which allows us to push events back from our `run`
 -- | `token`, as our API's secret / authentication token
--- | 
+-- |
 -- | we then transform (hoist) the router component from our `Example` monad
 -- | to a regular `Aff`-based component that goes into `runUI`
 -- |
 -- | finally, we `subscribe` to our event using `handler`
-main :: Eff (HA.HalogenEffects EffectType) Unit
+main :: Effect Unit
 main = HA.runHalogenAff do
   body  <- HA.awaitBody
 
   let environment = 42
-  state <- liftEff <<< newRef $ 0
-  event <- liftEff create
+  state <- liftEffect <<< Ref.new $ 0
+  event <- liftEffect create
   let token = APIToken secretKey
 
   let router' = H.hoist (runExample environment state event.push token) R.component
   driver <- runUI router' unit body
-  liftEff $ subscribe event.event (handler driver)
+  liftEffect $ subscribe event.event (handler driver)
 
   where
 
 -- | Using the component's `driver`, whenever we get a `PushType` value
 -- | from our runExample, we trigger an `action` in our `driver.query`.
-  handler :: H.HalogenIO Query Void (Aff (HA.HalogenEffects EffectType))
+  handler :: H.HalogenIO Query Void Aff
           -> PushType
-          -> Eff (HA.HalogenEffects EffectType) Unit
+          -> Effect Unit
   handler driver pt = do
     case pt of
       PushRoute route -> do
         _ <- launchAff $ driver.query <<< H.action <<< Goto $ route
         pure unit
       PushShowDialog opts -> do
-        _ <- launchAff $ driver.query <<< H.action <<< ShowDialog $ opts         
+        _ <- launchAff $ driver.query <<< H.action <<< ShowDialog $ opts
         pure unit
     pure unit

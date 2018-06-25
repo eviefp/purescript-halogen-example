@@ -14,17 +14,17 @@ import Example.DSL.State (getState)
 import Halogen as H
 import Halogen.HTML as HH
 import Halogen.HTML.Events as HE
-import Prelude (Unit, Void, bind, const, discard, id, pure, show, ($))
+import Prelude (Unit, Void, bind, const, discard, identity, pure, show, ($))
 
-data Query a 
+data Query a
   = Initialize a
   | GotoDetails a
 
--- | The secret number is stored in our global state. 
+-- | The secret number is stored in our global state.
 -- | We can change it in the `Details` page.
 -- |
 -- | The greeting is obtained through our server "api".
-type State = 
+type State =
  { secretNumber :: Maybe Int
  , greeting     :: String
  }
@@ -63,7 +63,7 @@ component =
   eval (Initialize next) = do
     number <- getState
     greetingResult <- getGreeting
-    let greeting = either (const "error") id greetingResult
+    let greeting = either (const "error") identity greetingResult
     H.put { secretNumber: Just number, greeting: greeting }
     pure next
   eval (GotoDetails next) = do

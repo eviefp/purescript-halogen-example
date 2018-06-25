@@ -1,4 +1,4 @@
-module Example.DSL.State 
+module Example.DSL.State
   ( class StateDSL
   , getState
   , modifyState
@@ -15,9 +15,9 @@ class (Monad m) <= StateDSL s m | m -> s where
   modifyState :: (s -> s) -> m Unit
 
 -- | We define a helper function for setting the state when we don't care about the current state.
-setState :: forall s m 
+setState :: forall s m
           . StateDSL s m
-         => s 
+         => s
          -> m Unit
 setState = modifyState <<< const
 

@@ -5,7 +5,6 @@ module Example.DSL.Dialog
   , ActionOptions
   ) where
 
-import Control.Monad.Eff (kind Effect)
 import Halogen (HalogenM, lift)
 import Prelude (class Monad, Unit, (<<<))
 
@@ -19,7 +18,7 @@ type ActionOptions m =
   }
 
 -- | Dialog title, content and actions.
-type DialogOptions m = 
+type DialogOptions m =
   { title    :: String
   , message  :: String
   , actions  :: Array (ActionOptions m)
