@@ -26,7 +26,7 @@ data DialogResult = DialogResult Int
 
 type State = DialogOptionsLite
 
-component :: forall m. H.Component HH.HTML Query DialogOptionsLite DialogResult m
+component :: ∀ m. H.Component HH.HTML Query DialogOptionsLite DialogResult m
 component
   = H.component
     { initialState: identity

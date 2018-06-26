@@ -4,14 +4,15 @@ module Example.Component.Details
   ) where
 
 import Control.Monad.Reader (ask)
+import Control.Monad.Reader.Class (class MonadAsk)
 import Data.Int (fromString)
 import Data.Maybe (Maybe(..), maybe)
 import Data.NaturalTransformation (type (~>))
 import Example.Component.Router.Query (Route(..))
-import Example.Control.Monad (ExampleM)
-import Example.DSL.Dialog (showDialog)
-import Example.DSL.Navigation (navigate)
-import Example.DSL.State (getState, setState)
+import Example.Control.Monad (GlobalState)
+import Example.DSL.Dialog (class DialogDSL, showDialog)
+import Example.DSL.Navigation (class NavigationDSL, navigate)
+import Example.DSL.State (class StateDSL, getState, setState)
 import Halogen as H
 import Halogen.HTML as HH
 import Halogen.HTML.Events as HE
@@ -31,7 +32,12 @@ type State =
   , secret :: Int
   }
 
-component :: H.Component HH.HTML Query Unit Void ExampleM
+component :: ∀ env m
+  . MonadAsk { answer :: Int | env } m
+ => StateDSL GlobalState m
+ => DialogDSL m m
+ => NavigationDSL m
+ => H.Component HH.HTML Query Unit Void m
 component =
   H.lifecycleComponent
     { initialState: const { answer: 0, secret: 0 }
@@ -63,7 +69,7 @@ component =
           [ HH.text "Go to home" ]
       ]
 
-  eval :: Query ~> H.ComponentDSL State Query Void ExampleM
+  eval :: Query ~> H.ComponentDSL State Query Void m
   eval (Initialize next) = do
     env <- ask
     n <- getState
@@ -91,7 +97,7 @@ component =
 
     where
 
-    updateValue :: Int -> ExampleM Unit
+    updateValue :: Int -> m Unit
     updateValue = setState
 
   eval (GotoHome next) = do

@@ -25,11 +25,11 @@ type Environment =
   { token :: APIToken
   , push :: PushType -> Effect Unit
   , answer :: Int
-  , state :: Ref State
+  , state :: Ref GlobalState
   }
 
 -- | Our state for `StateDSL`.
-type State = Int
+type GlobalState = Int
 
 newtype ExampleM a = ExampleM (ReaderT Environment Aff a)
 derive instance newtypeExampleM :: Newtype (ExampleM a) _
@@ -58,7 +58,7 @@ instance navigationDSLExampleM :: NavigationDSL ExampleM where
     liftEffect $ env.push $ PushRoute route
 
 -- | Encode get/set state
-instance stateDSLExampleM :: TE.TypeEquals st State => StateDSL st ExampleM where
+instance stateDSLExampleM :: TE.TypeEquals st GlobalState => StateDSL st ExampleM where
   getState = ExampleM do
     env <- ask
     liftEffect $ TE.from <$> Ref.read env.state
