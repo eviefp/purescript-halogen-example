@@ -10,7 +10,7 @@ import Effect.Class (liftEffect)
 import Effect.Ref as Ref
 import Example.Component.Router as R
 import Example.Component.Router.Query (Query(..))
-import Example.Control.Monad (Environment(..), GlobalState(..), PushType(..), runExampleM)
+import Example.Control.Monad (PushType(..), runExampleM)
 import Example.Server.ServerAPI (APIToken(..), secretKey)
 import FRP.Event (create, subscribe)
 import Halogen as H
@@ -34,12 +34,12 @@ import Prelude (Unit, Void, bind, flip, pure, unit, ($), (<<<))
 main :: Effect Unit
 main = HA.runHalogenAff do
   body  <- HA.awaitBody
-  state <- liftEffect $ Ref.new $ GlobalState 0
+  state <- liftEffect $ Ref.new 0
   event <- liftEffect create
-  let environment = Environment
+  let environment =
         { token: APIToken secretKey
         , answer: 42
-        , state: state
+        , state
         , push: event.push
         }
 

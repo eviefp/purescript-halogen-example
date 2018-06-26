@@ -2,7 +2,7 @@ module Example.Control.Monad where
 
 import Prelude
 
-import Control.Monad.Reader (ask, runReaderT)
+import Control.Monad.Reader (ask, asks, runReaderT)
 import Control.Monad.Reader.Class (class MonadAsk)
 import Control.Monad.Reader.Trans (ReaderT)
 import Data.Newtype (class Newtype, unwrap)
@@ -18,19 +18,18 @@ import Example.DSL.Navigation (class NavigationDSL)
 import Example.DSL.Server (class ServerDSL)
 import Example.DSL.State (class StateDSL)
 import Example.Server.ServerAPI (APIToken, getGreetingImpl)
+import Type.Equality as TE
 
 -- | Our Environmentironment for `MonadAsk`.
-newtype Environment = Environment
+type Environment =
   { token :: APIToken
   , push :: PushType -> Effect Unit
   , answer :: Int
-  , state :: Ref GlobalState
+  , state :: Ref State
   }
-derive instance newtypeEnvironment :: Newtype Environment _
 
 -- | Our state for `StateDSL`.
-newtype GlobalState = GlobalState Int
-derive instance newtypeState :: Newtype GlobalState _
+type State = Int
 
 newtype ExampleM a = ExampleM (ReaderT Environment Aff a)
 derive instance newtypeExampleM :: Newtype (ExampleM a) _
@@ -47,29 +46,33 @@ derive newtype instance bindExampleM :: Bind ExampleM
 derive newtype instance monadExampleM :: Monad ExampleM
 derive newtype instance monadEffectExampleM :: MonadEffect ExampleM
 derive newtype instance monadAffExampleM :: MonadAff ExampleM
-derive newtype instance monadAskExampleM :: MonadAsk Environment ExampleM
+
+instance monadAskExampleM :: TE.TypeEquals e Environment => MonadAsk e ExampleM where
+  ask = ExampleM $ asks TE.from
 
 -- | The route is stored through the pointfree syntax.
 -- | Store `unit` in our `a` so we can return something after we navigate.
 instance navigationDSLExampleM :: NavigationDSL ExampleM where
   navigate route = ExampleM do
-    env <- unwrap <$> ask
+    env <- ask
     liftEffect $ env.push $ PushRoute route
 
 -- | Encode get/set state
-instance stateDSLExampleM :: StateDSL GlobalState ExampleM where
+instance stateDSLExampleM :: TE.TypeEquals st State => StateDSL st ExampleM where
   getState = ExampleM do
-    env <- unwrap <$> ask
-    liftEffect $ Ref.read env.state
+    env <- ask
+    liftEffect $ TE.from <$> Ref.read env.state
 
   modifyState f = ExampleM do
-    env <- unwrap <$> ask
-    liftEffect $ Ref.modify_ f env.state
+    env <- ask
+    liftEffect $ do
+      st <- TE.from <$> Ref.read env.state
+      Ref.write (TE.to $ f st) env.state
 
 -- | This is where we map `ServerDSL` to actual service calls.
 instance serverDSLExampleM :: ServerDSL ExampleM where
   getGreeting = ExampleM do
-    env <- unwrap <$> ask
+    env <- ask
     liftAff $ getGreetingImpl env.token
 
 -- | `PushType` represents what kind of things we can push
@@ -80,10 +83,10 @@ data PushType
 
 instance dialogDSLExampleM :: DialogDSL ExampleM ExampleM where
   showDialog opts = ExampleM do
-    env <- unwrap <$> ask
+    env <- ask
 
     let runAction :: ActionOptions ExampleM -> ActionOptions Aff
-        runAction a = a { action = runExampleM a.action (Environment env) }
+        runAction a = a { action = runExampleM a.action env }
 
         runOptions :: DialogOptions ExampleM -> DialogOptions Aff
         runOptions d = d { actions = map runAction d.actions }

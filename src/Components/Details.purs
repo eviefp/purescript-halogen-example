@@ -7,9 +7,8 @@ import Control.Monad.Reader (ask)
 import Data.Int (fromString)
 import Data.Maybe (Maybe(..), maybe)
 import Data.NaturalTransformation (type (~>))
-import Data.Newtype (unwrap)
 import Example.Component.Router.Query (Route(..))
-import Example.Control.Monad (ExampleM, GlobalState(..))
+import Example.Control.Monad (ExampleM)
 import Example.DSL.Dialog (showDialog)
 import Example.DSL.Navigation (navigate)
 import Example.DSL.State (getState, setState)
@@ -17,7 +16,7 @@ import Halogen as H
 import Halogen.HTML as HH
 import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties as HP
-import Prelude (Unit, Void, bind, const, discard, identity, pure, show, unit, ($), (<$>), (<<<), (<>))
+import Prelude (Unit, Void, bind, const, discard, identity, pure, show, unit, ($), (<>))
 
 data Query a
   = Initialize a
@@ -66,8 +65,8 @@ component =
 
   eval :: Query ~> H.ComponentDSL State Query Void ExampleM
   eval (Initialize next) = do
-    env <- unwrap <$> ask
-    (GlobalState n) <- getState
+    env <- ask
+    n <- getState
     H.put { answer: env.answer, secret: n }
     pure next
   eval (ValueChanged val next) = do
@@ -93,7 +92,7 @@ component =
     where
 
     updateValue :: Int -> ExampleM Unit
-    updateValue = setState <<< GlobalState
+    updateValue = setState
 
   eval (GotoHome next) = do
     navigate Home
