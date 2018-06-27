@@ -65,9 +65,7 @@ instance stateDSLExampleM :: TE.TypeEquals st GlobalState => StateDSL st Example
 
   modifyState f = ExampleM do
     env <- ask
-    liftEffect $ do
-      st <- TE.from <$> Ref.read env.state
-      Ref.write (TE.to $ f st) env.state
+    liftEffect $ Ref.modify_ (TE.to <<< f <<< TE.from) env.state
 
 -- | This is where we map `ServerDSL` to actual service calls.
 instance serverDSLExampleM :: ServerDSL ExampleM where
