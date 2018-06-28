@@ -1,3 +1,6 @@
+## WARNING
+This repository is currently being updated for 0.12. The code is (mostly) done, but the documentation (and possibly comments) are out of date.
+
 # Purescript Halogen Example
 Sample Halogen app with a few DSLs implemented as the application's free monad.
 
