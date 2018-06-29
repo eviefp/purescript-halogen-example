@@ -3,6 +3,7 @@ module Example.Component.Router
   ) where
 
 import Control.Monad.Reader.Class (class MonadAsk)
+import Control.Parallel.Class (class Parallel)
 import Data.Array ((!!))
 import Data.Either.Nested (Either3)
 import Data.Functor.Coproduct.Nested (Coproduct3)
@@ -40,13 +41,14 @@ type State =
   }
 
 -- | Router component.
-component :: ∀ env m
+component :: ∀ env f m
   . MonadAsk { answer :: Int | env } m
  => StateDSL GlobalState m
  => ServerDSL m
  => DialogDSL m m
  => NavigationDSL m
  => MonadAff m
+ => Parallel f m
  => H.Component HH.HTML Query Unit Void m
 component
   = H.parentComponent
