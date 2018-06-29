@@ -5,9 +5,10 @@ import Prelude
 import Control.Monad.Reader (ask, asks, runReaderT)
 import Control.Monad.Reader.Class (class MonadAsk)
 import Control.Monad.Reader.Trans (ReaderT)
+import Control.Parallel.Class (class Parallel, parallel, sequential)
 import Data.Newtype (class Newtype, unwrap)
 import Effect (Effect)
-import Effect.Aff (Aff)
+import Effect.Aff (Aff, ParAff)
 import Effect.Aff.Class (class MonadAff, liftAff)
 import Effect.Class (class MonadEffect, liftEffect)
 import Effect.Ref (Ref)
@@ -32,13 +33,13 @@ type Environment =
 type GlobalState = Int
 
 newtype ExampleM a = ExampleM (ReaderT Environment Aff a)
-derive instance newtypeExampleM :: Newtype (ExampleM a) _
 
 -- | Helper unwrap function.
 runExampleM :: forall a. ExampleM a -> Environment -> Aff a
 runExampleM m env = runReaderT (unwrap m) env
 
 -- | Free instances
+derive instance newtypeExampleM :: Newtype (ExampleM a) _
 derive newtype instance functorExampleM :: Functor ExampleM
 derive newtype instance applyExampleM :: Apply ExampleM
 derive newtype instance applicativeExampleM :: Applicative ExampleM
@@ -47,6 +48,23 @@ derive newtype instance monadExampleM :: Monad ExampleM
 derive newtype instance monadEffectExampleM :: MonadEffect ExampleM
 derive newtype instance monadAffExampleM :: MonadAff ExampleM
 
+-- | Applicative version of the application monad over ParAff to
+-- | support parallel computations
+newtype ExampleA a = ExampleA (ReaderT Environment ParAff a)
+
+derive instance newtypeExampleA :: Newtype (ExampleA a) _
+derive newtype instance functorExampleA :: Functor ExampleA
+derive newtype instance applyExampleA :: Apply ExampleA
+derive newtype instance applicativeExampleA :: Applicative ExampleA
+
+-- | Hand-written instances for ExampleM
+
+-- | Allow parallel computations like parTraverse
+instance parallelExampleM :: Parallel ExampleA ExampleM where
+  parallel (ExampleM m) = ExampleA $ parallel m
+  sequential (ExampleA m) = ExampleM $ sequential m
+
+-- | Allow access to Reader
 instance monadAskExampleM :: TE.TypeEquals e Environment => MonadAsk e ExampleM where
   ask = ExampleM $ asks TE.from
 

@@ -6,6 +6,7 @@ module Example.Component.Dialog
   , DialogOptionsLite
   ) where
 
+import Control.Parallel.Class (class Parallel)
 import Data.Array (mapWithIndex)
 import Data.Maybe (Maybe(..))
 import Halogen as H
@@ -26,7 +27,9 @@ data DialogResult = DialogResult Int
 
 type State = DialogOptionsLite
 
-component :: ∀ m. H.Component HH.HTML Query DialogOptionsLite DialogResult m
+component :: ∀ f m
+  . Parallel f m
+ => H.Component HH.HTML Query DialogOptionsLite DialogResult m
 component
   = H.component
     { initialState: identity
