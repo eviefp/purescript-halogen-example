@@ -62,7 +62,8 @@ component =
     showSecretNumber (Just n) = show n
 
   -- | We are able to use `getState`, `getGreeting` and `navigate` here
-  -- | from our app's DSLs / free monad.
+  -- | from our app's DSLs / free monad because we assert that `m`
+  -- | implements `StateDSL`, `ServerDSL`, and `NavigationDSL`.
   eval :: Query ~> H.ComponentDSL State Query Void m
   eval (Initialize next) = do
     number <- getState
