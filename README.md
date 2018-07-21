@@ -1,6 +1,3 @@
-## WARNING
-This repository is currently being updated for 0.12. The code is (mostly) done, but the documentation (and possibly comments) are out of date.
-
 # Purescript Halogen Example
 Sample Halogen app with a few DSLs implemented as the application's reader monad.
 
@@ -42,9 +39,24 @@ instance navigationDSLHalogenM :: NavigationDSL m => NavigationDSL (HalogenM s f
 What this basically says is that whenever you use `navigate` within a HalogenM context, we will
 lift the DSL to the inner-monad `m`, which means we'll need to have an instance ourselves.
 
-## The Reader monad
+## The Reader Pattern
+We will be using the __ReaderT pattern_. If you have not used `ReaderT` before, please go through 
+[The ReaderT design pattern](https://www.fpcomplete.com/blog/2017/06/readert-design-pattern) post.
 
-TODO: short motivation of why we chose ReaderT and Environment.
+The _env_ type we are using is
+
+```purescript
+type Environment =
+  { token :: APIToken
+  , push :: PushType -> Effect Unit
+  , answer :: Int
+  , state :: Ref GlobalState
+  }
+```
+
+These are needed for all the various DSLs we are using. Specifically, the `ServerDSL` uses the `token`,
+`NavigationDSL` and `DialogDSL` use the `push` field to request a route change or displaying the dialog box,
+and the global `StateDSL` uses `state`.
 
 ## Our application's monad
 We can define our monad as:
