@@ -21,16 +21,16 @@ import Prelude (Unit, Void, bind, flip, pure, unit, ($), (<<<))
 -- | This is where everything ties toghether.
 -- | We first make sure the prerequisites for running our app exist:
 -- |
--- | `body`, the element that will contain our app
--- | `environment` as our application's non-mutable environment
+-- | `body`, the HTML element that will contain our app,
 -- | `state`, our application's state, as a `Ref Int`
--- | `event`, our `behavior` which allows us to push events back from our `run`
--- | `token`, as our API's secret / authentication token
+-- | `event`, our `behavior`, which allows us to push events back from our free monad,
+-- | `token`, as our API's secret / authentication token.
 -- |
--- | we then transform (hoist) the router component from our `Example` monad
--- | to a regular `Aff`-based component that goes into `runUI`
+-- | We throw everything into our `environment`, which is passed to `runExampleM`.
+-- | We then transform (hoist) the router component from our `Example` monad
+-- | to a regular `Aff`-based component that goes into `runUI`.
 -- |
--- | finally, we `subscribe` to our event using `handler`
+-- | Finally, we `subscribe` to our event using `handler`.
 main :: Effect Unit
 main = HA.runHalogenAff do
   body  <- HA.awaitBody

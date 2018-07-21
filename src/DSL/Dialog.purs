@@ -17,7 +17,7 @@ type ActionOptions m =
   , action :: m Unit
   }
 
--- | Dialog title, content and actions.
+-- | Dialog title, content and a list of actions.
 type DialogOptions m =
   { title    :: String
   , message  :: String

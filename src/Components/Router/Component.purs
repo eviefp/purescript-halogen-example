@@ -34,6 +34,7 @@ type ItemQuery = Coproduct3 Dialog.Query Home.Query Details.Query
 -- | Slot type for router items.
 type ItemSlot = Either3 Unit Unit Unit
 
+-- | Internal state for the Router component.
 type State =
   { route :: Route
   , dialogOptions :: Maybe (DialogOptions Aff)
