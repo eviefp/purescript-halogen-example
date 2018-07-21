@@ -168,3 +168,7 @@ under any monad `m`. The `ExampleM` instance for `DialogDSL` assumes
 both the monad that it runs under and the monad used to run the actions
 is `ExampleM`. It transforms the options to `Aff` and pushes them to the `router`
 through the handler stored in the `environment`.
+
+## Parallel
+@thomashoneyman kindly contributed a version which enables parallel computations
+to the application's monad. You can [check it out in this PR](https://github.com/vladciobanu/purescript-halogen-example/pull/9).
